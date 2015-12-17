@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
-* @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-16 16:57:33
+* @Last Modified by:   jpweber
+* @Last Modified time: 2015-12-16 22:18:28
  */
 
 package main
@@ -35,6 +35,7 @@ func hello(w http.ResponseWriter, r *http.Request) {
 
 func ping(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "pong")
+	Test()
 }
 
 func main() {
@@ -59,7 +60,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", ping)
 
-	mux.HandleFunc("/", logger(hello))
+	mux.HandleFunc("/", logger(APICall))
 	http.ListenAndServe(":8000", mux)
 
 }
