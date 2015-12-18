@@ -19,6 +19,8 @@ api requests get made to the gateway and it makes requests to services behind th
 - ability to mock end points
     - you make a call and the api sends back test/dummy data instead of reaching out backing services
 
+- ability to load new configs via its own api, and then reload those configs via its own REST api
+
 
 ## Code path
 
