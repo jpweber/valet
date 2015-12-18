@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-18 13:32:32
+* @Last Modified time: 2015-12-18 13:46:45
  */
 
 package main
@@ -55,18 +55,23 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 		}
 	}(&wg, appApis)
 
-	// check rate limits if request is rate limited.
-	if appApis[apiCall].RateLimit == true {
-		if RateLimit(appApis[apiCall]) == false {
-			// if over limit reject the request with http status
-			w.WriteHeader(http.StatusForbidden)
-			io.WriteString(w, "Rate Limit Exceeded")
+	go func(wg *sync.WaitGroup, appApis map[string]AppConfig) {
+		// check rate limits if request is rate limited.
+		if appApis[apiCall].RateLimit == true {
+			if RateLimit(appApis[apiCall]) == false {
+				// if over limit reject the request with http status
+				w.WriteHeader(http.StatusForbidden)
+				io.WriteString(w, "Rate Limit Exceeded")
+				wg.Done()
+			} else {
+				// not throttling
+				wg.Done()
+			}
+		} else {
+			// if we aren't authorizing just mark this wg counter to done
 			wg.Done()
 		}
-	} else {
-		// if we aren't authorizing just mark this wg counter to done
-		wg.Done()
-	}
+	}(&wg, appApis)
 
 	wg.Wait() //Wait for the concurrent routines to call 'done'
 
