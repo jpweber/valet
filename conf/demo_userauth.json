@@ -1,0 +1,10 @@
+{
+    "name": "userauth",
+    "description": "service to authorize users of system",
+    "authorize": false,
+    "authKey": null,
+    "authHeader": null,
+    "backendHost": "userauth.test.com",
+    "rateLimit": false,
+    "limitValue": null
+}

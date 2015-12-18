@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
-* @Last Modified by:   jpweber
-* @Last Modified time: 2015-12-16 22:18:28
+* @Last Modified by:   jamesweber
+* @Last Modified time: 2015-12-17 14:03:43
  */
 
 package main
@@ -35,7 +35,6 @@ func hello(w http.ResponseWriter, r *http.Request) {
 
 func ping(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "pong")
-	Test()
 }
 
 func main() {
@@ -49,18 +48,18 @@ func main() {
 		os.Exit(0)
 	}
 
-	logwriter, e := syslog.New(syslog.LOG_NOTICE, "DREMEL")
+	logwriter, e := syslog.New(syslog.LOG_NOTICE, "VALET")
 	if e == nil {
 		log.SetOutput(logwriter)
 	}
 
 	log.SetFlags(0)
-	log.Println("Dremel Starting")
+	log.Println("Valet Starting")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", ping)
 
-	mux.HandleFunc("/", logger(APICall))
+	mux.HandleFunc("/", logger(PrimaryHandler))
 	http.ListenAndServe(":8000", mux)
 
 }

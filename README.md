@@ -14,4 +14,23 @@ api requests get made to the gateway and it makes requests to services behind th
 - url patterms
     -  mygateway.foo.com/api1/* -> api1.someserver.com/*
         -  passes through what ever http action was used.
-    -  the first  / argument points to 
+    -  the first  / argument points to
+
+- ability to mock end points
+    - you make a call and the api sends back test/dummy data instead of reaching out backing services
+
+
+## Code path
+
+request hits http server. 
+- first api existence is checked
+- performed concurrently
+	- request is authorized
+	- rate limits checked
+	- list of end points are collected and prepared for access
+
+- performed concurrently
+	- send requests to the necessary endpoints 
+	- collect all responses in json payload 
+
+- response to requestor

@@ -1,8 +1,8 @@
 /*
 * @Author: jpweber
 * @Date:   2015-12-16 20:35:55
-* @Last Modified by:   jpweber
-* @Last Modified time: 2015-12-16 22:20:38
+* @Last Modified by:   jamesweber
+* @Last Modified time: 2015-12-17 14:07:44
  */
 
 package main
@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func APICall(w http.ResponseWriter, req *http.Request) {
+func APICall(req *http.Request) string {
 
 	urlParts := strings.Split(req.URL.Path, "/")
 
@@ -26,6 +26,6 @@ func APICall(w http.ResponseWriter, req *http.Request) {
 		apiCall = urlParts[1]
 	}
 
-	// return apiCall
-	fmt.Println(apiCall)
+	return apiCall
+	// fmt.Println(apiCall)
 }
