@@ -2,7 +2,7 @@
 * @Author: jpweber
 * @Date:   2015-12-16 20:35:55
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-17 14:07:44
+* @Last Modified time: 2015-12-18 10:39:09
  */
 
 package main
@@ -27,5 +27,4 @@ func APICall(req *http.Request) string {
 	}
 
 	return apiCall
-	// fmt.Println(apiCall)
 }

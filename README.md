@@ -26,6 +26,7 @@ api requests get made to the gateway and it makes requests to services behind th
 
 request hits http server. 
 - first api existence is checked
+- if we know about this api end point is it reachable?
 - performed concurrently
 	- request is authorized
 	- rate limits checked
