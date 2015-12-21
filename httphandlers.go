@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-21 17:10:04
+* @Last Modified time: 2015-12-21 17:38:33
  */
 
 package main
@@ -15,25 +15,8 @@ import (
 
 func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 
-	// TODO: This should be moved to somewhere in main
-	// we don't need to load up the configs and apis for
-	// every request
-	// configs := AppConfigList("conf")
-	// appApis := LoadApps(configs)
-
 	// pull out the api call from the http request
 	apiCall := APICall(req)
-
-	// devLimiter := make(chan bool, 2) // this is just for quick dev. Need to move this out of here
-	// appApis[apiCall].Limiter = devLimiter
-
-	select {
-	case <-appApis[apiCall].Limiter:
-		fmt.Println("Sending Request")
-	default:
-		w.WriteHeader(420)
-		return
-	}
 
 	// see if we know about this application api
 	if KnownApp(apiCall, appApis) == false {
@@ -52,6 +35,21 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusForbidden)
 			io.WriteString(w, "Authorization Failed")
 		}
+	}
+
+	// at this point we can assume that a request should succeed.
+	// count the this request against rate limit and move on.
+	select {
+	case <-appApis[apiCall].Limiter:
+		fmt.Println("Sending Request")
+		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appApis[apiCall].LimitValue))
+		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appApis[apiCall].Limiter)))
+	default:
+		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appApis[apiCall].LimitValue))
+		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appApis[apiCall].Limiter)))
+		w.WriteHeader(420)
+
+		return
 	}
 
 	// TODO: @debug
