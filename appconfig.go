@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-18 10:35:34
+* @Last Modified time: 2015-12-21 17:17:21
  */
 
 package main
@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type AppConfig struct {
@@ -25,11 +26,8 @@ type AppConfig struct {
 	BackendHost string
 	RateLimit   bool
 	LimitValue  int64
+	Limiter     chan bool
 }
-
-// type AppConfigs struct {
-// 	apps map[string]AppConfig
-// }
 
 // read all files in the app config dir
 func AppConfigList(dir string) []string {
@@ -48,6 +46,20 @@ func AppConfigList(dir string) []string {
 	return fileNames
 }
 
+func refillBucket(app AppConfig, ticker <-chan time.Time) {
+	for {
+		select {
+		case <-ticker:
+			fmt.Println("ticker fired")
+			var i int64
+			for i = 0; i < app.LimitValue; i++ {
+				app.Limiter <- true
+			}
+		}
+	}
+
+}
+
 // build up AppConfigs struct with what we found
 func LoadApps(configs []string) map[string]AppConfig {
 
@@ -64,6 +76,21 @@ func LoadApps(configs []string) map[string]AppConfig {
 		if err := json.Unmarshal(file, &appConfig); err != nil {
 			panic(err)
 		}
+
+		// populate the Limiter with appropriate tokens
+		if appConfig.RateLimit == true {
+			appConfig.Limiter = make(chan bool, appConfig.LimitValue)
+			var i int64
+			for i = 0; i < appConfig.LimitValue; i++ {
+				appConfig.Limiter <- true
+			}
+		}
+
+		// create channel for ticks. Currently set at 1 minut ticks
+		tickChan := time.NewTicker(time.Minute * 1).C
+		// fire off the frefill bucket function for this app
+		go refillBucket(appConfig, tickChan)
+
 		configList[appConfig.Name] = appConfig
 
 	}

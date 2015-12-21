@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-17 14:03:43
+* @Last Modified time: 2015-12-21 16:20:27
  */
 
 package main
@@ -20,6 +20,9 @@ import (
 const AppVersion = "0.0.1"
 
 var buildNumber string
+
+var configs []string
+var appApis map[string]AppConfig
 
 // wrapper function for http logging
 func logger(fn http.HandlerFunc) http.HandlerFunc {
@@ -56,9 +59,12 @@ func main() {
 	log.SetFlags(0)
 	log.Println("Valet Starting")
 
+	// load up the configs
+	configs = AppConfigList("conf")
+	appApis = LoadApps(configs)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", ping)
-
 	mux.HandleFunc("/", logger(PrimaryHandler))
 	http.ListenAndServe(":8000", mux)
 

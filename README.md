@@ -21,6 +21,11 @@ api requests get made to the gateway and it makes requests to services behind th
 
 - ability to load new configs via its own api, and then reload those configs via its own REST api
 
+- rate limit, send back limit exceeded response.
+    - X-Ratelimit-Used: Approximate number of requests used in this period
+    - X-Ratelimit-Remaining: Approximate number of requests left to use
+    - X-Ratelimit-Reset: Approximate number of seconds to end of period
+
 
 ## Code path
 

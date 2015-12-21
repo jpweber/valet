@@ -1,0 +1,10 @@
+{
+    "name": "widgetcheck",
+    "description": "Number of widgets processed",
+    "authorize": true,
+    "authKey": "thisismyauth",
+    "authHeader": "X-Valet-Auth",
+    "backendHost": "widget.test.com",
+    "rateLimit": true,
+    "limitValue": 10
+}

@@ -6,5 +6,5 @@
     "authHeader": "X-Valet-Auth",
     "backendHost": "userauth.test.com",
     "rateLimit": true,
-    "limitValue": 1
+    "limitValue": 2
 }
