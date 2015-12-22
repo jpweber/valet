@@ -14,7 +14,7 @@ api requests get made to the gateway and it makes requests to services behind th
 - url patterms
     -  mygateway.foo.com/api1/* -> api1.someserver.com/*
         -  passes through what ever http action was used.
-    -  the first  / argument points to
+    -  the first  / argument points to which app api to use.
 
 - ability to mock end points
     - you make a call and the api sends back test/dummy data instead of reaching out backing services
@@ -26,19 +26,19 @@ api requests get made to the gateway and it makes requests to services behind th
     - X-Ratelimit-Remaining: Approximate number of requests left to use
     - X-Ratelimit-Reset: Approximate number of seconds to end of period
 
-
-## Code path
-
-request hits http server. 
-- first api existence is checked
-- if we know about this api end point is it reachable?
-- performed concurrently
-	- request is authorized
-	- rate limits checked
-	- list of end points are collected and prepared for access
-
-- performed concurrently
-	- send requests to the necessary endpoints 
-	- collect all responses in json payload 
-
-- response to requestor
+- app config is a json file that looks like the below example. They are currently just being read out of the conf dir in the app root dir. This will change
+```
+{
+    "name": "userauth",
+    "description": "service to authorize users of system",
+    "authorize": true,
+    "authKey": "thisismyauth",
+    "authHeader": "X-Valet-Auth",
+    "rateLimit": true,
+    "limitValue": 2,
+    "endpoints": [
+        { "host": "auth.test.com", "path":"", "port":9050 },
+        { "host": "auth.test.com", "path":"", "port":9051 }
+    ]
+}
+```
