@@ -2,12 +2,13 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-21 17:38:33
+* @Last Modified time: 2015-12-22 16:39:57
  */
 
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,6 +35,7 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 			// bad authorization
 			w.WriteHeader(http.StatusForbidden)
 			io.WriteString(w, "Authorization Failed")
+			return
 		}
 	}
 
@@ -42,11 +44,17 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 	select {
 	case <-appApis[apiCall].Limiter:
 		fmt.Println("Sending Request")
+		apiResponses := SendRequest(req, appApis[apiCall])
+		jsonResponses, _ := json.Marshal(apiResponses)
 		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appApis[apiCall].LimitValue))
 		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appApis[apiCall].Limiter)))
+		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appApis[apiCall].RateCountdown)))
+		io.WriteString(w, string(jsonResponses))
+
 	default:
 		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appApis[apiCall].LimitValue))
 		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appApis[apiCall].Limiter)))
+		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appApis[apiCall].RateCountdown)))
 		w.WriteHeader(420)
 
 		return

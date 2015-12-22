@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-21 17:17:21
+* @Last Modified time: 2015-12-22 16:38:12
  */
 
 package main
@@ -18,16 +18,25 @@ import (
 )
 
 type AppConfig struct {
-	Name        string
-	Description string
-	Authorize   bool
-	AuthKey     string
-	AuthHeader  string
-	BackendHost string
-	RateLimit   bool
-	LimitValue  int64
-	Limiter     chan bool
+	Name          string
+	Description   string
+	Authorize     bool
+	AuthKey       string
+	AuthHeader    string
+	RateLimit     bool
+	LimitValue    int64
+	Limiter       chan bool
+	Endpoints     []Endpoint
+	RateCountdown chan bool
 }
+
+type Endpoint struct {
+	Host string
+	Path string
+	Port int64
+}
+
+const rateLimitDuration = 60
 
 // read all files in the app config dir
 func AppConfigList(dir string) []string {
@@ -46,15 +55,34 @@ func AppConfigList(dir string) []string {
 	return fileNames
 }
 
-func refillBucket(app AppConfig, ticker <-chan time.Time) {
+func refillBucket(app *AppConfig, ticker <-chan time.Time, countDown chan bool) {
 	for {
 		select {
 		case <-ticker:
 			fmt.Println("ticker fired")
+			cur := len(app.Limiter)
+			refill := app.LimitValue - int64(cur)
 			var i int64
-			for i = 0; i < app.LimitValue; i++ {
+			// refill the limiter channel
+			for i = 0; i < refill; i++ {
 				app.Limiter <- true
 			}
+
+			// refill the countdown channel
+			for i = 0; i < rateLimitDuration; i++ {
+				countDown <- true
+			}
+		}
+	}
+
+}
+
+func countdown(timer <-chan time.Time, countDown <-chan bool) {
+	for {
+		select {
+		case <-timer:
+			// drain the countdown
+			<-countDown
 		}
 	}
 
@@ -84,12 +112,20 @@ func LoadApps(configs []string) map[string]AppConfig {
 			for i = 0; i < appConfig.LimitValue; i++ {
 				appConfig.Limiter <- true
 			}
-		}
 
-		// create channel for ticks. Currently set at 1 minut ticks
-		tickChan := time.NewTicker(time.Minute * 1).C
-		// fire off the frefill bucket function for this app
-		go refillBucket(appConfig, tickChan)
+			// create channel for ticks. Currently set at 1 minute ticks
+			tickChan := time.NewTicker(time.Second * rateLimitDuration).C
+			timerChan := time.NewTicker(time.Second * 1).C
+			appConfig.RateCountdown = make(chan bool, 60)
+			// fill the coundown channel with 60 items
+			for i = 0; i > rateLimitDuration; i++ {
+				appConfig.RateCountdown <- true
+			}
+
+			// fire off the frefill bucket function for this app
+			go refillBucket(&appConfig, tickChan, appConfig.RateCountdown)
+			go countdown(timerChan, appConfig.RateCountdown)
+		}
 
 		configList[appConfig.Name] = appConfig
 
