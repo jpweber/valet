@@ -4,7 +4,10 @@
     "authorize": true,
     "authKey": "thisismyauth",
     "authHeader": "X-Valet-Auth",
-    "backendHost": "widget.test.com",
     "rateLimit": true,
-    "limitValue": 10
+    "limitValue": 12,
+    "endpoints": [
+        { "host": "auth.test.com", "path":"", "port":9050 },
+        { "host": "auth.test.com", "path":"", "port":9051 }
+    ]
 }
