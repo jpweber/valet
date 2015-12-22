@@ -26,7 +26,10 @@ api requests get made to the gateway and it makes requests to services behind th
     - X-Ratelimit-Remaining: Approximate number of requests left to use
     - X-Ratelimit-Reset: Approximate number of seconds to end of period
 
+- gateway daemon currently runs on port 8000. This will be configurable at runtime later. 
+
 - app config is a json file that looks like the below example. They are currently just being read out of the conf dir in the app root dir. This will change
+to be clear is this the config for the applications that will be sitting behind the gateway. Not the gateway application it self. 
 ```
 {
     "name": "userauth",
