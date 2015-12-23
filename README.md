@@ -19,7 +19,12 @@ api requests get made to the gateway and it makes requests to services behind th
 - ability to mock end points
     - you make a call and the api sends back test/dummy data instead of reaching out backing services
 
+- be able to run as a redundant pair by. local server will need config to define the other node(s).
+nodes will just send increment messages for rate limiting. 
+
 - ability to load new configs via its own api, and then reload those configs via its own REST api
+
+- administrative rest endpoint that can be used to query for the current / configured / available apis this gateway is fronting
 
 - rate limit, send back limit exceeded response.
     - X-Ratelimit-Used: Approximate number of requests used in this period

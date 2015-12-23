@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-22 14:22:38
+* @Last Modified time: 2015-12-23 13:21:30
  */
 
 package main
@@ -40,6 +40,10 @@ func ping(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "pong")
 }
 
+func admin(w http.ResponseWriter, r *http.Request) {
+	io.WriteString(w, "Not implemented yet")
+}
+
 func main() {
 
 	versionPtr := flag.Bool("v", false, "a bool")
@@ -65,6 +69,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", ping)
+	mux.HandleFunc("/admin", admin)
 	mux.HandleFunc("/", logger(PrimaryHandler))
 	http.ListenAndServe(":8000", mux)
 

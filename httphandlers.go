@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-22 16:39:57
+* @Last Modified time: 2015-12-23 15:23:14
  */
 
 package main
@@ -29,9 +29,12 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 		// TODO: function still needs implemented
 	}
 
+	// pull out the particular appconfig we are using so we can modify values
+	appConfig := appApis[apiCall]
+
 	// authorize request if authorizing is required
-	if appApis[apiCall].Authorize == true {
-		if Authorize(appApis[apiCall], req) == false {
+	if appConfig.Authorize == true {
+		if Authorize(appConfig, req) == false {
 			// bad authorization
 			w.WriteHeader(http.StatusForbidden)
 			io.WriteString(w, "Authorization Failed")
@@ -41,26 +44,29 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 
 	// at this point we can assume that a request should succeed.
 	// count the this request against rate limit and move on.
+
+	// increment hit counter
+	appConfig.Hits = 1
+
+	fmt.Println(apiCall, appConfig.Hits) // TODO: @debug
 	select {
-	case <-appApis[apiCall].Limiter:
+	case <-appConfig.Limiter:
 		fmt.Println("Sending Request")
-		apiResponses := SendRequest(req, appApis[apiCall])
+		apiResponses := SendRequest(req, appConfig)
 		jsonResponses, _ := json.Marshal(apiResponses)
-		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appApis[apiCall].LimitValue))
-		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appApis[apiCall].Limiter)))
-		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appApis[apiCall].RateCountdown)))
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appConfig.LimitValue))
+		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appConfig.Limiter)))
+		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appConfig.RateCountdown)))
 		io.WriteString(w, string(jsonResponses))
 
 	default:
-		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appApis[apiCall].LimitValue))
-		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appApis[apiCall].Limiter)))
-		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appApis[apiCall].RateCountdown)))
+		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appConfig.LimitValue))
+		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appConfig.Limiter)))
+		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appConfig.RateCountdown)))
 		w.WriteHeader(420)
 
 		return
 	}
-
-	// TODO: @debug
-	fmt.Println("Would be returning api response here")
 
 }

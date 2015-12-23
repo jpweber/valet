@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-22 16:38:12
+* @Last Modified time: 2015-12-23 15:23:50
  */
 
 package main
@@ -28,6 +28,7 @@ type AppConfig struct {
 	Limiter       chan bool
 	Endpoints     []Endpoint
 	RateCountdown chan bool
+	Hits          int64
 }
 
 type Endpoint struct {

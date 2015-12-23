@@ -1,11 +1,11 @@
 {
     "name": "userauth",
     "description": "service to authorize users of system",
-    "authorize": true,
+    "authorize": false,
     "authKey": "thisismyauth",
     "authHeader": "X-Valet-Auth",
     "rateLimit": true,
-    "limitValue": 2,
+    "limitValue": 400,
     "endpoints": [
         { "host": "auth.test.com", "path":"", "port":9050 },
         { "host": "auth.test.com", "path":"", "port":9051 }
