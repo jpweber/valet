@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-23 15:23:14
+* @Last Modified time: 2015-12-28 11:01:52
  */
 
 package main
@@ -46,9 +46,8 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 	// count the this request against rate limit and move on.
 
 	// increment hit counter
-	appConfig.Hits = 1
+	appConfig.Hits <- true
 
-	fmt.Println(apiCall, appConfig.Hits) // TODO: @debug
 	select {
 	case <-appConfig.Limiter:
 		fmt.Println("Sending Request")

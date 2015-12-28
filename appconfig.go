@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-23 15:23:50
+* @Last Modified time: 2015-12-28 10:55:25
  */
 
 package main
@@ -28,7 +28,7 @@ type AppConfig struct {
 	Limiter       chan bool
 	Endpoints     []Endpoint
 	RateCountdown chan bool
-	Hits          int64
+	Hits          chan bool
 }
 
 type Endpoint struct {
@@ -127,6 +127,9 @@ func LoadApps(configs []string) map[string]AppConfig {
 			go refillBucket(&appConfig, tickChan, appConfig.RateCountdown)
 			go countdown(timerChan, appConfig.RateCountdown)
 		}
+
+		// setup stats channel
+		appConfig.Hits = make(chan bool)
 
 		configList[appConfig.Name] = appConfig
 

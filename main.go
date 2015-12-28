@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-23 13:21:30
+* @Last Modified time: 2015-12-28 11:00:50
  */
 
 package main
@@ -23,6 +23,7 @@ var buildNumber string
 
 var configs []string
 var appApis map[string]AppConfig
+var stats map[string]int64
 
 // wrapper function for http logging
 func logger(fn http.HandlerFunc) http.HandlerFunc {
@@ -66,6 +67,26 @@ func main() {
 	// load up the configs
 	configs = AppConfigList("conf")
 	appApis = LoadApps(configs)
+
+	// build up channels for metrics
+	// TODO: create a channel per app. Then create a map [string]int64 with keys being app name
+	// and value being int64s that will just get incremented every time the endpoint is hit.
+	stats = make(map[string]int64)
+	for _, appAPI := range appApis {
+		stats[appAPI.Name] = int64(0)
+
+		go func(appAPI AppConfig, stats map[string]int64) {
+			fmt.Println("Starting go func for ", appAPI.Name)
+			for {
+				select {
+				case <-appAPI.Hits:
+					stats[appAPI.Name] += 1
+				default:
+					// do nothing. But we need this here so we don't block as we loop around.
+				}
+			}
+		}(appAPI, stats)
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", ping)
