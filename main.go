@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-28 11:00:50
+* @Last Modified time: 2015-12-28 12:13:27
  */
 
 package main
@@ -15,6 +15,7 @@ import (
 	"log/syslog"
 	"net/http"
 	"os"
+	"strings"
 )
 
 const AppVersion = "0.0.1"
@@ -41,8 +42,18 @@ func ping(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "pong")
 }
 
-func admin(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Not implemented yet")
+func apps(w http.ResponseWriter, r *http.Request) {
+	urlParts := strings.Split(r.URL.Path, "/")
+	fmt.Printf("%s", urlParts)
+	fmt.Println(len(urlParts))
+	if len(urlParts) == 2 {
+		AppList(w)
+	}
+
+	if len(urlParts) == 3 {
+		AppInfo(w, urlParts[2])
+	}
+
 }
 
 func main() {
@@ -90,7 +101,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", ping)
-	mux.HandleFunc("/admin", admin)
+	mux.HandleFunc("/apps", apps)
+	mux.HandleFunc("/apps/", apps)
 	mux.HandleFunc("/", logger(PrimaryHandler))
 	http.ListenAndServe(":8000", mux)
 

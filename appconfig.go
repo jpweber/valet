@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-28 10:55:25
+* @Last Modified time: 2015-12-28 12:04:37
  */
 
 package main
@@ -21,14 +21,14 @@ type AppConfig struct {
 	Name          string
 	Description   string
 	Authorize     bool
-	AuthKey       string
+	AuthKey       string `json:"-"`
 	AuthHeader    string
 	RateLimit     bool
 	LimitValue    int64
-	Limiter       chan bool
+	Limiter       chan bool `json:"-"`
 	Endpoints     []Endpoint
-	RateCountdown chan bool
-	Hits          chan bool
+	RateCountdown chan bool `json:"-"`
+	Hits          chan bool `json:"-"`
 }
 
 type Endpoint struct {
