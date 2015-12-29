@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-28 12:13:27
+* @Last Modified time: 2015-12-29 17:57:30
  */
 
 package main
@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"log/syslog"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -54,6 +55,34 @@ func apps(w http.ResponseWriter, r *http.Request) {
 		AppInfo(w, urlParts[2])
 	}
 
+}
+
+func reload(w http.ResponseWriter, r *http.Request) {
+	// BUG: this messes up channels and causes actuall api requrest to fail because the
+	// channels no lnoger line up. Need to find a way to reload the config by just updating certain parts
+	// so we don't blow away the channels of this instance of the config.
+	configs = AppConfigList("conf")
+	appApis = LoadApps(configs)
+}
+
+// Handles incoming requests.
+func handleRequest(conn net.Conn) {
+	// Make a buffer to hold incoming data.
+	buf := make([]byte, 1024)
+	// Read the incoming connection into the buffer.
+	reqLen, err := conn.Read(buf)
+	if err != nil {
+		fmt.Println("Error reading:", err.Error())
+	}
+
+	apiCall := strings.TrimSpace(string(buf[:reqLen]))
+
+	fmt.Printf("%s", apiCall)
+	<-appApis[apiCall].Limiter
+	// Send a response back to person contacting us.
+	conn.Write([]byte("Message received."))
+	// Close the connection when you're done with it.
+	conn.Close()
 }
 
 func main() {
@@ -99,10 +128,31 @@ func main() {
 		}(appAPI, stats)
 	}
 
+	go func() {
+		// stuff for handling running pairs and keeping limits in sync
+		listener, err := net.Listen("tcp", ":8001")
+		if err != nil {
+			// handle error
+			fmt.Println(err)
+		}
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				// handle error
+				fmt.Println(err)
+			}
+			handleRequest(conn)
+			// Close the listener when the application closes.
+			defer listener.Close()
+		}
+	}()
+
+	// http server
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", ping)
 	mux.HandleFunc("/apps", apps)
 	mux.HandleFunc("/apps/", apps)
+	mux.HandleFunc("/admin/reload", reload)
 	mux.HandleFunc("/", logger(PrimaryHandler))
 	http.ListenAndServe(":8000", mux)
 

@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-28 12:04:37
+* @Last Modified time: 2015-12-28 13:00:43
  */
 
 package main
@@ -21,7 +21,7 @@ type AppConfig struct {
 	Name          string
 	Description   string
 	Authorize     bool
-	AuthKey       string `json:"-"`
+	AuthKey       string //`json:"-"`
 	AuthHeader    string
 	RateLimit     bool
 	LimitValue    int64
