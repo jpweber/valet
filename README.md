@@ -1,6 +1,6 @@
 # Valet an API Gateway
 
-I had the idea that building an api gateway would be a fun project.
+I had the idea that building an api gateway would be a fun project. This is still in early rapid development do not use yet unless you know what you're getting in to. 
 
 ## Design concepts
 api requests get made to the gateway and it makes requests to services behind the gateway. Collects all those responses and then returns the compiled response to the client. Design restraint self imposed to try and not use a database.
@@ -51,15 +51,4 @@ to be clear is this the config for the applications that will be sitting behind 
         { "host": "auth.test.com", "path":"", "port":9051 }
     ]
 }
-```
-
-## TODO
-- ~ authorize api request ~
-- ~ administrative rest endpoint that can be used to query for the current / configured / available apis this gateway is fronting ~
-- ~ rate limit per end point ~
-- ability to mock end points
-- communication with pair
-- decide what to communincate with pairs, master slave? or master master?
-- ~ Fix config reload bug ~
-- Figure model for storing stats and rate limiting info for public consumers
-    Currently its built assuming one main consumer being a single enterprise. 
+``` 
