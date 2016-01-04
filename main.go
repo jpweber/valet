@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
-* @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-29 17:57:30
+* @Last Modified by:   jpweber
+* @Last Modified time: 2016-01-03 21:26:01
  */
 
 package main
@@ -25,6 +25,7 @@ var buildNumber string
 
 var configs []string
 var appApis map[string]AppConfig
+var appChans map[string]AppChans
 var stats map[string]int64
 
 // wrapper function for http logging
@@ -78,7 +79,7 @@ func handleRequest(conn net.Conn) {
 	apiCall := strings.TrimSpace(string(buf[:reqLen]))
 
 	fmt.Printf("%s", apiCall)
-	<-appApis[apiCall].Limiter
+	<-appChans[apiCall].Limiter
 	// Send a response back to person contacting us.
 	conn.Write([]byte("Message received."))
 	// Close the connection when you're done with it.
@@ -107,6 +108,7 @@ func main() {
 	// load up the configs
 	configs = AppConfigList("conf")
 	appApis = LoadApps(configs)
+	appChans = InitChans(configs)
 
 	// build up channels for metrics
 	// TODO: create a channel per app. Then create a map [string]int64 with keys being app name
@@ -119,7 +121,7 @@ func main() {
 			fmt.Println("Starting go func for ", appAPI.Name)
 			for {
 				select {
-				case <-appAPI.Hits:
+				case <-appChans[appAPI.Name].Hits:
 					stats[appAPI.Name] += 1
 				default:
 					// do nothing. But we need this here so we don't block as we loop around.
