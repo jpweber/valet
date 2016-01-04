@@ -54,12 +54,12 @@ to be clear is this the config for the applications that will be sitting behind 
 ```
 
 ## TODO
-- ~authorize api request~
-- ~administrative rest endpoint that can be used to query for the current / configured / available apis this gateway is fronting~
-- ~rate limit per end point~
+- ~ authorize api request ~
+- ~ administrative rest endpoint that can be used to query for the current / configured / available apis this gateway is fronting ~
+- ~ rate limit per end point ~
 - ability to mock end points
 - communication with pair
 - decide what to communincate with pairs, master slave? or master master?
-- Fix config reload bug
+- ~ Fix config reload bug ~
 - Figure model for storing stats and rate limiting info for public consumers
     Currently its built assuming one main consumer being a single enterprise. 
