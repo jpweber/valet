@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-04 21:54:18
+* @Last Modified time: 2016-01-04 23:06:06
  */
 
 package main
@@ -112,7 +112,8 @@ func main() {
 	log.Println("Valet Starting")
 
 	// load up the configs
-	configs = AppConfigList("conf")
+	workingDir, _ := os.Getwd()
+	configs = AppConfigList(workingDir + "conf")
 	appApis = LoadApps(configs)
 	appChans = InitChans(configs)
 
@@ -160,7 +161,7 @@ func main() {
 	mux.HandleFunc("/ping", ping)
 	mux.HandleFunc("/apps", apps)
 	mux.HandleFunc("/apps/", apps)
-	mux.HandleFunc("/admin/reload", reload)
+	mux.HandleFunc("/admin/reload", logger(reload))
 	mux.HandleFunc("/", logger(PrimaryHandler))
 	http.ListenAndServe(":"+httpPort, mux)
 
