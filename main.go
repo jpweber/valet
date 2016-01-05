@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-03 21:26:01
+* @Last Modified time: 2016-01-04 21:54:18
  */
 
 package main
@@ -21,12 +21,15 @@ import (
 
 const AppVersion = "0.0.1"
 
-var buildNumber string
-
-var configs []string
-var appApis map[string]AppConfig
-var appChans map[string]AppChans
-var stats map[string]int64
+// init main vars
+var (
+	buildNumber string
+	configs     []string
+	appApis     map[string]AppConfig
+	appChans    map[string]AppChans
+	stats       map[string]int64
+	httpPort    string
+)
 
 // wrapper function for http logging
 func logger(fn http.HandlerFunc) http.HandlerFunc {
@@ -89,6 +92,7 @@ func handleRequest(conn net.Conn) {
 func main() {
 
 	versionPtr := flag.Bool("v", false, "a bool")
+	httpPortFlag := flag.String("P", "8000", "Port number for http server to listen on. Defaults to 8000")
 	// Once all flags are declared, call `flag.Parse()`
 	// to execute the command-line parsing.
 	flag.Parse()
@@ -96,6 +100,8 @@ func main() {
 		fmt.Println(AppVersion + " Build " + buildNumber)
 		os.Exit(0)
 	}
+
+	httpPort = *httpPortFlag
 
 	logwriter, e := syslog.New(syslog.LOG_NOTICE, "VALET")
 	if e == nil {
@@ -156,6 +162,6 @@ func main() {
 	mux.HandleFunc("/apps/", apps)
 	mux.HandleFunc("/admin/reload", reload)
 	mux.HandleFunc("/", logger(PrimaryHandler))
-	http.ListenAndServe(":8000", mux)
+	http.ListenAndServe(":"+httpPort, mux)
 
 }
