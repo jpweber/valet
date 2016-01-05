@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
 * @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-03 21:27:53
+* @Last Modified time: 2016-01-04 23:30:54
  */
 
 package main
@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
@@ -51,12 +52,16 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 	select {
 	case <-appChans[appConfig.Name].Limiter:
 		fmt.Println("Sending Request")
+		start := time.Now()
 		apiResponses := SendRequest(req, appConfig)
+		stop := time.Since(start)
+		fmt.Println(stop)
 		jsonResponses, _ := json.Marshal(apiResponses)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appConfig.LimitValue))
 		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appChans[appConfig.Name].Limiter)))
 		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appChans[appConfig.Name].RateCountdown)))
+		w.Header().Add("X-Backend-Response-Time", fmt.Sprintf("%s", stop))
 		io.WriteString(w, string(jsonResponses))
 
 	default:
