@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
-* @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-28 11:01:52
+* @Last Modified by:   jpweber
+* @Last Modified time: 2016-01-03 21:27:53
  */
 
 package main
@@ -46,23 +46,23 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 	// count the this request against rate limit and move on.
 
 	// increment hit counter
-	appConfig.Hits <- true
+	appChans[appConfig.Name].Hits <- true
 
 	select {
-	case <-appConfig.Limiter:
+	case <-appChans[appConfig.Name].Limiter:
 		fmt.Println("Sending Request")
 		apiResponses := SendRequest(req, appConfig)
 		jsonResponses, _ := json.Marshal(apiResponses)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appConfig.LimitValue))
-		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appConfig.Limiter)))
-		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appConfig.RateCountdown)))
+		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appChans[appConfig.Name].Limiter)))
+		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appChans[appConfig.Name].RateCountdown)))
 		io.WriteString(w, string(jsonResponses))
 
 	default:
 		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appConfig.LimitValue))
-		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appConfig.Limiter)))
-		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appConfig.RateCountdown)))
+		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appChans[appConfig.Name].Limiter)))
+		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appChans[appConfig.Name].RateCountdown)))
 		w.WriteHeader(420)
 
 		return

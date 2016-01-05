@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
-* @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-28 13:00:43
+* @Last Modified by:   jpweber
+* @Last Modified time: 2016-01-03 21:24:01
  */
 
 package main
@@ -18,23 +18,29 @@ import (
 )
 
 type AppConfig struct {
-	Name          string
-	Description   string
-	Authorize     bool
-	AuthKey       string //`json:"-"`
-	AuthHeader    string
-	RateLimit     bool
-	LimitValue    int64
-	Limiter       chan bool `json:"-"`
-	Endpoints     []Endpoint
-	RateCountdown chan bool `json:"-"`
-	Hits          chan bool `json:"-"`
+	Name        string
+	Description string
+	Authorize   bool
+	AuthKey     string //`json:"-"`
+	AuthHeader  string
+	RateLimit   bool
+	LimitValue  int64
+	// Limiter     chan bool `json:"-"`
+	Endpoints []Endpoint
+	// RateCountdown chan bool `json:"-"`
+	// Hits          chan bool `json:"-"`
 }
 
 type Endpoint struct {
 	Host string
 	Path string
 	Port int64
+}
+
+type AppChans struct {
+	RateCountdown chan bool
+	Hits          chan bool
+	Limiter       chan bool
 }
 
 const rateLimitDuration = 60
@@ -56,34 +62,34 @@ func AppConfigList(dir string) []string {
 	return fileNames
 }
 
-func refillBucket(app *AppConfig, ticker <-chan time.Time, countDown chan bool) {
+func refillBucket(app *AppConfig, ticker <-chan time.Time, channels AppChans) {
 	for {
 		select {
 		case <-ticker:
 			fmt.Println("ticker fired")
-			cur := len(app.Limiter)
+			cur := len(channels.Limiter)
 			refill := app.LimitValue - int64(cur)
 			var i int64
 			// refill the limiter channel
 			for i = 0; i < refill; i++ {
-				app.Limiter <- true
+				channels.Limiter <- true
 			}
 
 			// refill the countdown channel
 			for i = 0; i < rateLimitDuration; i++ {
-				countDown <- true
+				channels.RateCountdown <- true
 			}
 		}
 	}
 
 }
 
-func countdown(timer <-chan time.Time, countDown <-chan bool) {
+func countdown(timer <-chan time.Time, countdown chan bool) {
 	for {
 		select {
 		case <-timer:
 			// drain the countdown
-			<-countDown
+			<-countdown
 		}
 	}
 
@@ -106,35 +112,61 @@ func LoadApps(configs []string) map[string]AppConfig {
 			panic(err)
 		}
 
-		// populate the Limiter with appropriate tokens
-		if appConfig.RateLimit == true {
-			appConfig.Limiter = make(chan bool, appConfig.LimitValue)
-			var i int64
-			for i = 0; i < appConfig.LimitValue; i++ {
-				appConfig.Limiter <- true
-			}
-
-			// create channel for ticks. Currently set at 1 minute ticks
-			tickChan := time.NewTicker(time.Second * rateLimitDuration).C
-			timerChan := time.NewTicker(time.Second * 1).C
-			appConfig.RateCountdown = make(chan bool, 60)
-			// fill the coundown channel with 60 items
-			for i = 0; i > rateLimitDuration; i++ {
-				appConfig.RateCountdown <- true
-			}
-
-			// fire off the frefill bucket function for this app
-			go refillBucket(&appConfig, tickChan, appConfig.RateCountdown)
-			go countdown(timerChan, appConfig.RateCountdown)
-		}
-
-		// setup stats channel
-		appConfig.Hits = make(chan bool)
-
 		configList[appConfig.Name] = appConfig
 
 	}
 
 	return configList
+
+}
+
+func InitChans(configs []string) map[string]AppChans {
+
+	appChannels := map[string]AppChans{}
+	newChannelSet := AppChans{}
+
+	for _, config := range configs {
+		file, err := ioutil.ReadFile(config)
+		if err != nil {
+			fmt.Printf("File error: %v\n", err)
+			os.Exit(1)
+		}
+
+		appConfig := AppConfig{}
+		if err := json.Unmarshal(file, &appConfig); err != nil {
+			panic(err)
+		}
+
+		// populate the Limiter with appropriate tokens
+		if appConfig.RateLimit == true {
+			newChannelSet.Limiter = make(chan bool, appConfig.LimitValue)
+			var i int64
+			for i = 0; i < appConfig.LimitValue; i++ {
+				newChannelSet.Limiter <- true
+			}
+
+			// create channel for ticks. Currently set at 1 minute ticks
+			tickChan := time.NewTicker(time.Second * rateLimitDuration).C
+			timerChan := time.NewTicker(time.Second * 1).C
+			newChannelSet.RateCountdown = make(chan bool, 60)
+			// fill the coundown channel with 60 items
+			for i = 0; i > rateLimitDuration; i++ {
+				newChannelSet.RateCountdown <- true
+			}
+
+			// fire off the frefill bucket function for this app
+			go refillBucket(&appConfig, tickChan, newChannelSet)
+			go countdown(timerChan, newChannelSet.RateCountdown)
+		}
+
+		// setup stats channel
+		hits := make(chan bool)
+		newChannelSet.Hits = hits
+
+		appChannels[appConfig.Name] = newChannelSet
+
+	}
+
+	return appChannels
 
 }

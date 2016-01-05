@@ -5,7 +5,7 @@
     "authKey": "thisismyauth",
     "authHeader": "X-Valet-Auth",
     "rateLimit": true,
-    "limitValue": 500,
+    "limitValue": 600,
     "endpoints": [
         { "host": "auth.test.com", "path":"", "port":9050 },
         { "host": "auth.test.com", "path":"", "port":9051 }
