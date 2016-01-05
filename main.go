@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-04 23:06:06
+* @Last Modified time: 2016-01-04 23:16:41
  */
 
 package main
@@ -113,7 +113,8 @@ func main() {
 
 	// load up the configs
 	workingDir, _ := os.Getwd()
-	configs = AppConfigList(workingDir + "conf")
+	fmt.Println(workingDir)
+	configs = AppConfigList(workingDir + "/conf")
 	appApis = LoadApps(configs)
 	appChans = InitChans(configs)
 
@@ -159,8 +160,8 @@ func main() {
 	// http server
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", ping)
-	mux.HandleFunc("/apps", apps)
-	mux.HandleFunc("/apps/", apps)
+	mux.HandleFunc("/apps", logger(apps))
+	mux.HandleFunc("/apps/", logger(apps))
 	mux.HandleFunc("/admin/reload", logger(reload))
 	mux.HandleFunc("/", logger(PrimaryHandler))
 	http.ListenAndServe(":"+httpPort, mux)

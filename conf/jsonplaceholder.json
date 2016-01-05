@@ -1,0 +1,12 @@
+{
+    "name": "jsontest",
+    "description": "Test config using http://jsonplaceholder.typicode.com. ",
+    "authorize": false,
+    "authKey": "thisismyauth",
+    "authHeader": "X-Valet-Auth",
+    "rateLimit": true,
+    "limitValue": 600,
+    "endpoints": [
+        { "host": "jsonplaceholder.typicode.com", "path":"", "port":80 }
+    ]
+}

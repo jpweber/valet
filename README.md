@@ -52,3 +52,5 @@ to be clear is this the config for the applications that will be sitting behind 
     ]
 }
 ``` 
+
+Docker conatainer for this app can be found at https://hub.docker.com/r/jpweber/valet/
