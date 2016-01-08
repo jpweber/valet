@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
-* @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-03 21:24:01
+* @Last Modified by:   James Weber
+* @Last Modified time: 2016-01-07 20:54:57
  */
 
 package main
@@ -117,6 +117,40 @@ func LoadApps(configs []string) map[string]AppConfig {
 	}
 
 	return configList
+
+}
+
+func BuildChanSet(appConfig AppConfig) AppChans {
+
+	newChannelSet := AppChans{}
+
+	// populate the Limiter with appropriate tokens
+	if appConfig.RateLimit == true {
+		newChannelSet.Limiter = make(chan bool, appConfig.LimitValue)
+		var i int64
+		for i = 0; i < appConfig.LimitValue; i++ {
+			newChannelSet.Limiter <- true
+		}
+
+		// create channel for ticks. Currently set at 1 minute ticks
+		tickChan := time.NewTicker(time.Second * rateLimitDuration).C
+		timerChan := time.NewTicker(time.Second * 1).C
+		newChannelSet.RateCountdown = make(chan bool, 60)
+		// fill the coundown channel with 60 items
+		for i = 0; i > rateLimitDuration; i++ {
+			newChannelSet.RateCountdown <- true
+		}
+
+		// fire off the frefill bucket function for this app
+		go refillBucket(&appConfig, tickChan, newChannelSet)
+		go countdown(timerChan, newChannelSet.RateCountdown)
+	}
+
+	// setup stats channel
+	hits := make(chan bool)
+	newChannelSet.Hits = hits
+
+	return newChannelSet
 
 }
 

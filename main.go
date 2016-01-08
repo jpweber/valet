@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   James Weber
-* @Last Modified time: 2016-01-07 20:45:41
+* @Last Modified time: 2016-01-07 20:56:48
  */
 
 package main
@@ -86,6 +86,7 @@ func saveNewApp(w http.ResponseWriter, r *http.Request) {
 
 	// add to app channels
 	appChans[config.Name] = BuildChanSet(config)
+
 }
 
 // Handles incoming requests.
