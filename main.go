@@ -1,13 +1,14 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
-* @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-04 23:16:41
+* @Last Modified by:   James Weber
+* @Last Modified time: 2016-01-07 20:45:41
  */
 
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -67,6 +68,24 @@ func reload(w http.ResponseWriter, r *http.Request) {
 	// so we don't blow away the channels of this instance of the config.
 	configs = AppConfigList("conf")
 	appApis = LoadApps(configs)
+}
+
+func saveNewApp(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("in save new app")
+	fmt.Printf("+%v", r.Body)
+	decoder := json.NewDecoder(r.Body)
+	var config AppConfig
+	err := decoder.Decode(&config)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("%+v", config)
+
+	// add to app configs
+	appApis[config.Name] = config
+
+	// add to app channels
+	appChans[config.Name] = BuildChanSet(config)
 }
 
 // Handles incoming requests.
@@ -163,6 +182,7 @@ func main() {
 	mux.HandleFunc("/apps", logger(apps))
 	mux.HandleFunc("/apps/", logger(apps))
 	mux.HandleFunc("/admin/reload", logger(reload))
+	mux.HandleFunc("/new", logger(saveNewApp))
 	mux.HandleFunc("/", logger(PrimaryHandler))
 	http.ListenAndServe(":"+httpPort, mux)
 
