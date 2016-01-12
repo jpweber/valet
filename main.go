@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
-* @Last Modified by:   James Weber
-* @Last Modified time: 2016-01-07 20:56:48
+* @Last Modified by:   jamesweber
+* @Last Modified time: 2016-01-12 17:07:30
  */
 
 package main
@@ -17,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"runtime/pprof"
 	"strings"
 )
 
@@ -87,6 +88,9 @@ func saveNewApp(w http.ResponseWriter, r *http.Request) {
 	// add to app channels
 	appChans[config.Name] = BuildChanSet(config)
 
+	// persist the configs to disk
+	Persist(appApis)
+
 }
 
 // Handles incoming requests.
@@ -109,6 +113,8 @@ func handleRequest(conn net.Conn) {
 	conn.Close()
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
 
 	versionPtr := flag.Bool("v", false, "a bool")
@@ -119,6 +125,14 @@ func main() {
 	if *versionPtr == true {
 		fmt.Println(AppVersion + " Build " + buildNumber)
 		os.Exit(0)
+	}
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
 	}
 
 	httpPort = *httpPortFlag
