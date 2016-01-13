@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jamesweber
-* @Last Modified time: 2016-01-12 17:07:30
+* @Last Modified time: 2016-01-12 18:03:05
  */
 
 package main
@@ -17,7 +17,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"runtime/pprof"
 	"strings"
 )
 
@@ -118,7 +117,7 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 func main() {
 
 	versionPtr := flag.Bool("v", false, "a bool")
-	httpPortFlag := flag.String("P", "8000", "Port number for http server to listen on. Defaults to 8000")
+	httpPortFlag := flag.String("P", "", "Port number for http server to listen on. Defaults to setting in server config")
 	// Once all flags are declared, call `flag.Parse()`
 	// to execute the command-line parsing.
 	flag.Parse()
@@ -126,16 +125,15 @@ func main() {
 		fmt.Println(AppVersion + " Build " + buildNumber)
 		os.Exit(0)
 	}
-	if *cpuprofile != "" {
-		f, err := os.Create(*cpuprofile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	}
 
-	httpPort = *httpPortFlag
+	// read the server config
+	serverConfig := LoadConfig()
+	httpPort = serverConfig.Port
+
+	// let command like port specification override the config file
+	if *httpPortFlag != "" {
+		httpPort = *httpPortFlag
+	}
 
 	logwriter, e := syslog.New(syslog.LOG_NOTICE, "VALET")
 	if e == nil {
