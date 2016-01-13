@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-22 14:15:48
-* @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-22 17:31:14
+* @Last Modified by:   jpweber
+* @Last Modified time: 2016-01-12 22:07:15
  */
 
 package main
@@ -58,7 +58,7 @@ func SendRequest(req *http.Request, appConfig AppConfig) []string {
 	// equal to the number of endpoints we tried
 	iter := 0
 	for result := range resultChan {
-		fmt.Println(result)
+		// fmt.Println(result)
 		results = append(results, result)
 		iter++
 		if iter == len(appConfig.Endpoints) {

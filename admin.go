@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-28 11:12:01
-* @Last Modified by:   jamesweber
-* @Last Modified time: 2015-12-28 13:12:00
+* @Last Modified by:   jpweber
+* @Last Modified time: 2016-01-12 22:11:59
  */
 
 package main
@@ -33,4 +33,12 @@ func AppInfo(w http.ResponseWriter, name string) {
 		fmt.Println(err)
 	}
 	w.Write(info)
+}
+
+func AppStats(w http.ResponseWriter, name string) {
+	stats, err := json.Marshal(stats[name])
+	if err != nil {
+		fmt.Println(err)
+	}
+	w.Write(stats)
 }
