@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
-* @Last Modified by:   jamesweber
-* @Last Modified time: 2016-01-12 18:03:05
+* @Last Modified by:   jpweber
+* @Last Modified time: 2016-01-12 21:30:14
  */
 
 package main
@@ -18,6 +18,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/davecheney/profile"
 )
 
 const AppVersion = "0.0.1"
@@ -115,6 +117,7 @@ func handleRequest(conn net.Conn) {
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func main() {
+	defer profile.Start(profile.CPUProfile).Stop()
 
 	versionPtr := flag.Bool("v", false, "a bool")
 	httpPortFlag := flag.String("P", "", "Port number for http server to listen on. Defaults to setting in server config")
@@ -153,22 +156,22 @@ func main() {
 	// build up channels for metrics
 	// TODO: create a channel per app. Then create a map [string]int64 with keys being app name
 	// and value being int64s that will just get incremented every time the endpoint is hit.
-	stats = make(map[string]int64)
-	for _, appAPI := range appApis {
-		stats[appAPI.Name] = int64(0)
+	// stats = make(map[string]int64)
+	// for _, appAPI := range appApis {
+	// 	stats[appAPI.Name] = int64(0)
 
-		go func(appAPI AppConfig, stats map[string]int64) {
-			fmt.Println("Starting go func for ", appAPI.Name)
-			for {
-				select {
-				case <-appChans[appAPI.Name].Hits:
-					stats[appAPI.Name] += 1
-				default:
-					// do nothing. But we need this here so we don't block as we loop around.
-				}
-			}
-		}(appAPI, stats)
-	}
+	// 	go func(appAPI AppConfig, stats map[string]int64) {
+	// 		fmt.Println("Starting go func for ", appAPI.Name)
+	// 		for {
+	// 			select {
+	// 			case <-appChans[appAPI.Name].Hits:
+	// 				stats[appAPI.Name] += 1
+	// 			default:
+	// 				// do nothing. But we need this here so we don't block as we loop around.
+	// 			}
+	// 		}
+	// 	}(appAPI, stats)
+	// }
 
 	go func() {
 		// stuff for handling running pairs and keeping limits in sync
