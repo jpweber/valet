@@ -7,7 +7,7 @@
     "rateLimit": true,
     "limitValue": 600,
     "endpoints": [
-        { "host": "auth.test.com", "path":"", "port":9050 },
-        { "host": "auth.test.com", "path":"", "port":9051 }
+        { "host": "auth.test.com", "path":"", "port":9050, "scheme": "http" },
+        { "host": "auth.test.com", "path":"", "port":9051, "scheme": "http"}
     ]
 }

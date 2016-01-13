@@ -7,6 +7,6 @@
     "rateLimit": true,
     "limitValue": 600,
     "endpoints": [
-        { "host": "jsonplaceholder.typicode.com", "path":"", "port":80 }
+        { "host": "jsonplaceholder.typicode.com", "path":"", "port":80, "scheme": "http" }
     ]
 }

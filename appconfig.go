@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
-* @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-12 20:46:04
+* @Last Modified by:   jamesweber
+* @Last Modified time: 2016-01-13 15:20:21
  */
 
 package main
@@ -32,9 +32,10 @@ type AppConfig struct {
 }
 
 type Endpoint struct {
-	Host string
-	Path string
-	Port int64
+	Host   string
+	Path   string
+	Port   int64
+	Scheme string
 }
 
 type AppChans struct {

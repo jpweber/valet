@@ -1,0 +1,16 @@
+{
+  "Name": "rundeck",
+  "Description": "calls to rundeck server",
+  "Authorize": false,
+  "AuthKey": "thisismyauth",
+  "AuthHeader": "X-Valet-Auth",
+  "RateLimit": true,
+  "LimitValue": 600,
+  "Endpoints": [
+    {
+      "Host": "rundeck.mgmt.crosschx.com",
+      "Path": "",
+      "Scheme": "https"
+    }
+  ]
+}

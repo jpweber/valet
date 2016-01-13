@@ -1,17 +1,17 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
-* @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-12 22:09:12
+* @Last Modified by:   jamesweber
+* @Last Modified time: 2016-01-13 15:22:37
  */
 
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -57,14 +57,16 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 		apiResponses := SendRequest(req, appConfig)
 		stop := time.Since(start)
-		fmt.Println(stop)
-		jsonResponses, _ := json.Marshal(apiResponses)
+		// fmt.Println(stop) TODO: @debug
+
+		jsonResponses := strings.Join(apiResponses, ",")
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appConfig.LimitValue))
 		w.Header().Add("X-Rate-Limit-Remaining", fmt.Sprintf("%d", len(appChans[appConfig.Name].Limiter)))
 		w.Header().Add("X-Rate-Limit-Reset", fmt.Sprintf("%d", len(appChans[appConfig.Name].RateCountdown)))
 		w.Header().Add("X-Backend-Response-Time", fmt.Sprintf("%s", stop))
-		io.WriteString(w, string(jsonResponses))
+		// io.WriteString(w, string(jsonResponses))
+		io.WriteString(w, jsonResponses)
 
 	default:
 		w.Header().Add("X-Rate-Limit-Limit", fmt.Sprintf("%d", appConfig.LimitValue))

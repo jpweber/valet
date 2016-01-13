@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-22 14:15:48
-* @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-12 22:07:15
+* @Last Modified by:   jamesweber
+* @Last Modified time: 2016-01-13 15:31:07
  */
 
 package main
@@ -21,11 +21,17 @@ func SendRequest(req *http.Request, appConfig AppConfig) []string {
 	urlParts := strings.Split(req.URL.Path, "/")
 	resultChan := make(chan string, len(appConfig.Endpoints))
 
+	// fmt.Println(req.Method) // TODO: @debug
+
 	for _, endpoint := range appConfig.Endpoints {
 
 		go func(resultChan chan string, urlParts []string, endpoint Endpoint) {
-			url := "http://" + endpoint.Host
-			url = url + ":" + fmt.Sprintf("%d", endpoint.Port)
+			url := endpoint.Scheme + "://" + endpoint.Host
+
+			// add port information if it was specified
+			if endpoint.Port != 0 {
+				url = url + ":" + fmt.Sprintf("%d", endpoint.Port)
+			}
 			// append any extra path information if present
 			if len(urlParts) > 1 {
 				url = url + "/" + strings.Join(urlParts[2:], "/")
@@ -37,7 +43,17 @@ func SendRequest(req *http.Request, appConfig AppConfig) []string {
 
 			// send the requests now.
 			fmt.Println(url) // TODO: @debug
-			response, err := http.Get(url)
+			client := &http.Client{}
+
+			newReq, err := http.NewRequest(req.Method, url, nil)
+
+			// add on the original request headers
+			for key, value := range req.Header {
+				newReq.Header.Add(key, value[0])
+			}
+
+			// fmt.Println(newReq.Header) // TODO: @debug
+			response, err := client.Do(newReq)
 			if err != nil {
 				fmt.Printf("%s", err)
 			} else {
