@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
-* @Last Modified by:   James Weber
-* @Last Modified time: 2016-01-10 09:50:10
+* @Last Modified by:   jpweber
+* @Last Modified time: 2016-01-12 20:46:04
  */
 
 package main
@@ -205,4 +205,20 @@ func InitChans(configs []string) map[string]AppChans {
 
 	return appChannels
 
+}
+
+func Persist(configs map[string]AppConfig) {
+
+	for _, config := range configs {
+		fmt.Println("saving " + config.Name + " config file")
+		jsonConfig, err := json.Marshal(config)
+		if err != nil {
+			panic(err)
+		}
+		err = ioutil.WriteFile("./conf/"+config.Name+".json", jsonConfig, 0644)
+		if err != nil {
+			panic(err)
+		}
+
+	}
 }
