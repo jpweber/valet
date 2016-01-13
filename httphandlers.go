@@ -1,8 +1,8 @@
 /*
 * @Author: jamesweber
 * @Date:   2015-12-17 14:02:09
-* @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-04 23:30:54
+* @Last Modified by:   James Weber
+* @Last Modified time: 2016-01-10 09:58:04
  */
 
 package main
@@ -47,7 +47,17 @@ func PrimaryHandler(w http.ResponseWriter, req *http.Request) {
 	// count the this request against rate limit and move on.
 
 	// increment hit counter
-	appChans[appConfig.Name].Hits <- true
+	// TODO: @debug
+	fmt.Printf("%+v", appChans["userauth2"])
+	select {
+	case appChans[appConfig.Name].Hits <- true:
+		fmt.Println("sent message")
+	default:
+		fmt.Println("no message sent")
+	}
+
+	// TODO: @debug
+	fmt.Println("a")
 
 	select {
 	case <-appChans[appConfig.Name].Limiter:

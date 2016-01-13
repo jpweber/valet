@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-17 13:41:45
 * @Last Modified by:   James Weber
-* @Last Modified time: 2016-01-07 20:54:57
+* @Last Modified time: 2016-01-10 09:50:10
  */
 
 package main
@@ -66,7 +66,7 @@ func refillBucket(app *AppConfig, ticker <-chan time.Time, channels AppChans) {
 	for {
 		select {
 		case <-ticker:
-			fmt.Println("ticker fired")
+			fmt.Println(app.Name, "ticker fired")
 			cur := len(channels.Limiter)
 			refill := app.LimitValue - int64(cur)
 			var i int64
@@ -120,7 +120,7 @@ func LoadApps(configs []string) map[string]AppConfig {
 
 }
 
-func BuildChanSet(appConfig AppConfig) AppChans {
+func BuildChanSet(appConfig *AppConfig) AppChans {
 
 	newChannelSet := AppChans{}
 
@@ -142,7 +142,7 @@ func BuildChanSet(appConfig AppConfig) AppChans {
 		}
 
 		// fire off the frefill bucket function for this app
-		go refillBucket(&appConfig, tickChan, newChannelSet)
+		go refillBucket(appConfig, tickChan, newChannelSet)
 		go countdown(timerChan, newChannelSet.RateCountdown)
 	}
 
@@ -157,7 +157,7 @@ func BuildChanSet(appConfig AppConfig) AppChans {
 func InitChans(configs []string) map[string]AppChans {
 
 	appChannels := map[string]AppChans{}
-	newChannelSet := AppChans{}
+	// newChannelSet := AppChans{}
 
 	for _, config := range configs {
 		file, err := ioutil.ReadFile(config)
@@ -171,31 +171,33 @@ func InitChans(configs []string) map[string]AppChans {
 			panic(err)
 		}
 
-		// populate the Limiter with appropriate tokens
-		if appConfig.RateLimit == true {
-			newChannelSet.Limiter = make(chan bool, appConfig.LimitValue)
-			var i int64
-			for i = 0; i < appConfig.LimitValue; i++ {
-				newChannelSet.Limiter <- true
-			}
+		// // populate the Limiter with appropriate tokens
+		// if appConfig.RateLimit == true {
+		// 	newChannelSet.Limiter = make(chan bool, appConfig.LimitValue)
+		// 	var i int64
+		// 	for i = 0; i < appConfig.LimitValue; i++ {
+		// 		newChannelSet.Limiter <- true
+		// 	}
 
-			// create channel for ticks. Currently set at 1 minute ticks
-			tickChan := time.NewTicker(time.Second * rateLimitDuration).C
-			timerChan := time.NewTicker(time.Second * 1).C
-			newChannelSet.RateCountdown = make(chan bool, 60)
-			// fill the coundown channel with 60 items
-			for i = 0; i > rateLimitDuration; i++ {
-				newChannelSet.RateCountdown <- true
-			}
+		// 	// create channel for ticks. Currently set at 1 minute ticks
+		// 	tickChan := time.NewTicker(time.Second * rateLimitDuration).C
+		// 	timerChan := time.NewTicker(time.Second * 1).C
+		// 	newChannelSet.RateCountdown = make(chan bool, 60)
+		// 	// fill the coundown channel with 60 items
+		// 	for i = 0; i > rateLimitDuration; i++ {
+		// 		newChannelSet.RateCountdown <- true
+		// 	}
 
-			// fire off the frefill bucket function for this app
-			go refillBucket(&appConfig, tickChan, newChannelSet)
-			go countdown(timerChan, newChannelSet.RateCountdown)
-		}
+		// 	// fire off the frefill bucket function for this app
+		// 	go refillBucket(&appConfig, tickChan, newChannelSet)
+		// 	go countdown(timerChan, newChannelSet.RateCountdown)
+		// }
 
-		// setup stats channel
-		hits := make(chan bool)
-		newChannelSet.Hits = hits
+		// // setup stats channel
+		// hits := make(chan bool)
+		// newChannelSet.Hits = hits
+
+		newChannelSet := BuildChanSet(&appConfig)
 
 		appChannels[appConfig.Name] = newChannelSet
 
