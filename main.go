@@ -2,7 +2,7 @@
 * @Author: jamesweber
 * @Date:   2015-12-16 16:47:12
 * @Last Modified by:   jpweber
-* @Last Modified time: 2016-01-12 21:30:14
+* @Last Modified time: 2016-01-12 22:14:19
  */
 
 package main
@@ -32,6 +32,7 @@ var (
 	appChans    map[string]AppChans
 	stats       map[string]int64
 	httpPort    string
+	statsChan   chan string
 )
 
 // wrapper function for http logging
@@ -60,6 +61,17 @@ func apps(w http.ResponseWriter, r *http.Request) {
 
 	if len(urlParts) == 3 {
 		AppInfo(w, urlParts[2])
+	}
+
+}
+
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	urlParts := strings.Split(r.URL.Path, "/")
+	fmt.Printf("%s", urlParts)
+	fmt.Println(len(urlParts))
+
+	if len(urlParts) == 3 {
+		AppStats(w, urlParts[2])
 	}
 
 }
@@ -156,22 +168,11 @@ func main() {
 	// build up channels for metrics
 	// TODO: create a channel per app. Then create a map [string]int64 with keys being app name
 	// and value being int64s that will just get incremented every time the endpoint is hit.
-	// stats = make(map[string]int64)
-	// for _, appAPI := range appApis {
-	// 	stats[appAPI.Name] = int64(0)
-
-	// 	go func(appAPI AppConfig, stats map[string]int64) {
-	// 		fmt.Println("Starting go func for ", appAPI.Name)
-	// 		for {
-	// 			select {
-	// 			case <-appChans[appAPI.Name].Hits:
-	// 				stats[appAPI.Name] += 1
-	// 			default:
-	// 				// do nothing. But we need this here so we don't block as we loop around.
-	// 			}
-	// 		}
-	// 	}(appAPI, stats)
-	// }
+	stats = make(map[string]int64)
+	// init stats map
+	for _, appAPI := range appApis {
+		stats[appAPI.Name] = int64(0)
+	}
 
 	go func() {
 		// stuff for handling running pairs and keeping limits in sync
@@ -197,6 +198,7 @@ func main() {
 	mux.HandleFunc("/ping", ping)
 	mux.HandleFunc("/apps", logger(apps))
 	mux.HandleFunc("/apps/", logger(apps))
+	mux.HandleFunc("/stats/", logger(statsHandler))
 	mux.HandleFunc("/admin/reload", logger(reload))
 	mux.HandleFunc("/new", logger(saveNewApp))
 	mux.HandleFunc("/", logger(PrimaryHandler))
