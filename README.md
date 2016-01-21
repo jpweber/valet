@@ -37,6 +37,18 @@ nodes will just send increment messages for rate limiting.
 - app config is a json file that looks like the below example. They are currently just being read out of the conf dir in the app root dir. This will change
 
 to be clear is this the config for the applications that will be sitting behind the gateway. Not the gateway application it self. 
+
+## Endpoints
+
+`GET /apps` - List all applications that are behind this gateway  
+`GET /apps/<app name>` - List configuration information about specified app  
+`POST /new` - Post json payload to gateway to add a new backend application. See JSON example below
+
+To send a normal query through the gateway send and HTTP request using whatever method your backend API expects `/your_app_name/your/restful/parameters`  
+A simple `GET` request could look like this `http://localhost:8000/jsontest/posts/1`  
+
+where **localhost:8000** is the host and port of the gateway. **jsontest** is the name of the application in the gateway config. **posts/1** are parameters that your API are expecting. 
+
 ```
 {
     "name": "userauth",
